@@ -23,14 +23,8 @@ https://user-images.githubusercontent.com/122792358/212680867-14f8f10f-f439-474d
 https://user-images.githubusercontent.com/122792358/212680628-9b899d25-121a-4428-a03b-bd2ae9c595a7.mp4
 
 Dreambooth的训练样本：
-![twintails (1)](https://user-images.githubusercontent.com/122792358/212681343-c0665891-6467-4bf2-a9d7-3deb1f72d1a9.png)
-![twintails (2)](https://user-images.githubusercontent.com/122792358/212681349-adf69c2c-0523-438c-ac13-c9ed1f09dffd.png)
-![twintails (3)](https://user-images.githubusercontent.com/122792358/212681351-12a437f4-d3b6-438a-a619-555aed1a82f3.png)
-![twintails (4)](https://user-images.githubusercontent.com/122792358/212681355-ef454e45-b349-4080-8245-9aac3b8f8126.png)
 
- <img src="[./xxx.png](https://user-images.githubusercontent.com/122792358/212681343-c0665891-6467-4bf2-a9d7-3deb1f72d1a9.png)" width = "200" height = "200" alt="图片名称" align=center />
- <img src="[./xxx.png](https://user-images.githubusercontent.com/122792358/212681349-adf69c2c-0523-438c-ac13-c9ed1f09dffd.png)" width = "200" height = "200" alt="图片名称" align=center />
-  
+![twintails (1)](https://user-images.githubusercontent.com/122792358/212681343-c0665891-6467-4bf2-a9d7-3deb1f72d1a9.png)![twintails (2)](https://user-images.githubusercontent.com/122792358/212681349-adf69c2c-0523-438c-ac13-c9ed1f09dffd.png)![twintails (3)](https://user-images.githubusercontent.com/122792358/212681351-12a437f4-d3b6-438a-a619-555aed1a82f3.png)![twintails (4)](https://user-images.githubusercontent.com/122792358/212681355-ef454e45-b349-4080-8245-9aac3b8f8126.png)
 
 
 对DreamBooth模型的要求很高，需要先训一个高质量高稳定性的模型出来，这个脚本只是作为辅助作用。
