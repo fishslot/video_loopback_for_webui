@@ -1,6 +1,6 @@
 # video_loopback_for_webui
 
-一个stable diffusion的脚本，用来做视频的img2img，通过loopback和时序模糊的方法提高视频的稳定性，尽量降低img2img动画特有的闪烁感。
+一个Stable Diffusion WebUI的脚本，用来做视频的img2img，通过loopback和时序模糊的方法提高视频的稳定性，尽量降低img2img动画特有的闪烁感。
 设计的目的是用于人物动画，一般来说需要搭配 DreamBooth 一起用，且对模型质量要求比较高。
 最终效果对img2img的参数设置非常非常敏感，需要仔细调整。这玩意挺玄学的，如果没调好还不如直接用 Batch img2img 。
 希望开源可以促进更多的人测试不同的参数配置，从而找到最优策略。
@@ -14,6 +14,7 @@
 这个脚本本身还需要缺乏一些详细的测试，所以可能有Bug。
 随手加了个视频inpainting的功能，还没有经过充分测试，这个功能理论上可以些微降低人物边缘的模糊情况。勾选use_mask，并且处于inpainting界面，并设定好inpainting相关的参数，就能用了。
 目前已知的Bug是，在img2img界面或inpainting界面中，需要先保证webui界面里有一张图片，才能开始处理（随便拖一张图片上去就行了）
+还有一点就是，需要提前安装 ffmpeg 。
 
 ## 效果展示(还不太成熟)
 转换效果：
