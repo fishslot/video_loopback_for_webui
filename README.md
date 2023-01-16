@@ -27,4 +27,4 @@ Dreambooth的训练样本：
 ![twintails (1)](https://user-images.githubusercontent.com/122792358/212681343-c0665891-6467-4bf2-a9d7-3deb1f72d1a9.png)![twintails (2)](https://user-images.githubusercontent.com/122792358/212681349-adf69c2c-0523-438c-ac13-c9ed1f09dffd.png)![twintails (3)](https://user-images.githubusercontent.com/122792358/212681351-12a437f4-d3b6-438a-a619-555aed1a82f3.png)![twintails (4)](https://user-images.githubusercontent.com/122792358/212681355-ef454e45-b349-4080-8245-9aac3b8f8126.png)
 
 
-对DreamBooth模型的要求很高，需要先训一个高质量高稳定性的模型出来，这个脚本只是作为辅助作用。
+整个流程的关键点在模型训练，对DreamBooth模型的要求很高，需要先训一个高质量高稳定性的模型出来才行，这个脚本只是作为辅助作用。
