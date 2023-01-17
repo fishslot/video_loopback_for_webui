@@ -1,12 +1,12 @@
 # video_loopback_for_webui
 
-一个Stable Diffusion WebUI的脚本，用来做视频的img2img，通过loopback和时序模糊的方法提高视频的稳定性，尽量降低img2img动画特有的闪烁感。
+一个 Stable Diffusion WebUI 的脚本，用来做视频的 img2img，通过 loopback 和时序模糊的方法提高视频的稳定性，尽量降低 img2img 动画特有的闪烁感。
 设计的目的是用于人物动画，一般来说需要搭配 DreamBooth 一起用，且对模型质量要求比较高。
-最终效果对img2img的参数设置非常非常敏感，需要仔细调整。这玩意挺玄学的，如果没调好还不如直接用 Batch img2img 。
+最终效果对 img2img 的参数设置非常非常敏感，需要仔细调整。这玩意挺玄学的，如果没调好还不如直接用 Batch img2img 。
 希望开源可以促进更多的人测试不同的参数配置，从而找到最优策略。
 
-在这个脚本的帮助下，允许使用更高的denoising（比如0.4甚至更高），这使得我们可以在驱动视频较模糊的情况下也能获得较好的效果。
-这个技术很适合用于优化由CoNR生成的视频，CoNR传送门：https://github.com/transpchan/Live3D-v2
+在这个脚本的帮助下，允许使用更高的 denoising（比如 0.4 甚至更高），这使得我们可以在驱动视频较模糊的情况下也能获得较好的效果。
+这个技术很适合用于优化由 Live3D 生成的视频，Live3D 传送门：https://github.com/transpchan/Live3D-v2
 
 除了脚本界面中的参数，原有webui界面中的所有参数都会影响生成，别忘了调这部分。
 
@@ -20,6 +20,10 @@
 
 还有一点就是，需要提前安装 ffmpeg 。
 
+使用方法：
+
+把.py文件丢到WebUI的scripts文件夹下，然后到 img2img 界面找 Video Loopback 脚本。
+
 ## 效果展示(还不太成熟)
 转换效果：
 
@@ -27,7 +31,7 @@ https://user-images.githubusercontent.com/122792358/212680768-56222b45-dd7b-428f
 
 https://user-images.githubusercontent.com/122792358/212680867-14f8f10f-f439-474d-b15f-af17536c8c94.mp4
 
-原视频：（感谢CoNR的工作!!!）
+原视频：（感谢 Live3D 的工作!!!）
 
 https://user-images.githubusercontent.com/122792358/212680628-9b899d25-121a-4428-a03b-bd2ae9c595a7.mp4
 
