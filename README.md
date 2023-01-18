@@ -21,7 +21,7 @@
 
 还有一点就是，需要提前安装 ffmpeg 。
 
-使用方法：
+安装方法：
 
 把.py文件丢到WebUI的scripts文件夹下，然后到 img2img 界面找 Video Loopback 脚本。
 
@@ -29,18 +29,11 @@
 转换效果：
 
 
-https://user-images.githubusercontent.com/122792358/212816082-261bf7f4-2c8c-40db-a46b-ed473530c9ad.mp4
+https://user-images.githubusercontent.com/122792358/213162533-48b45336-d5e4-4265-9476-6612e93a6e28.mp4
 
 
+原视频来自Live3D（感谢 Live3D 的工作!!!）
 
-
-https://user-images.githubusercontent.com/122792358/212816102-831a2035-2973-43f8-b53d-124d1ef85186.mp4
-
-
-
-原视频：（感谢 Live3D 的工作!!!）
-
-https://user-images.githubusercontent.com/122792358/212680628-9b899d25-121a-4428-a03b-bd2ae9c595a7.mp4
 
 Dreambooth的训练样本：
 
