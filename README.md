@@ -13,6 +13,8 @@
 
 这里应该还要再写一个更详细的文档介绍用法和各种参数来着，还应该附带一些简单的调参技巧，等我有空了弄，应该不会耽误太久。
 
+[用法介绍](https://github.com/fishslot/video_loopback_for_webui/wiki)
+
 这个脚本本身还缺乏一些详细的测试，所以可能有Bug。
 
 随手加了个视频inpainting的功能，还没有经过充分测试，这个功能理论上可以些微降低人物边缘的模糊情况。勾选use_mask，并且处于inpainting界面，并设定好inpainting相关的参数，就能用了。
