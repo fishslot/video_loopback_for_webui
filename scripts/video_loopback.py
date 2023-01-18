@@ -219,7 +219,7 @@ class Script(scripts.Script):
         save_every_loop = gr.Checkbox(label='save_every_loop', value=False)
 
         # extra settings
-        with gr.Accordion('Advanced Settings of Video Loopback', open=True):
+        with gr.Accordion('Advanced Settings of Video Loopback:', open=True):
             gr.Markdown(
                 "You can use any python expression in schedule <br>"
                 "Available parameters: math.*, image_i, loop_i <br>"
@@ -335,6 +335,10 @@ class Script(scripts.Script):
             "timestamp": timestamp,
             "input_dir": str(input_dir),
             "output_dir": str(output_dir),
+            "use_mask": use_mask,
+            "mask_dir": mask_dir,
+            "mask_threshold": mask_threshold,
+            "read_prompt_from_txt": read_prompt_from_txt,
             "output_frame_rate": output_frame_rate,
             "max_frames": max_frames,
             "extract_nth_frame": extract_nth_frame,
@@ -437,6 +441,8 @@ class Script(scripts.Script):
                         prompt if prompt is not None else default_prompt
                     p.negative_prompt = \
                         neg_prompt if neg_prompt is not None else default_neg_prompt
+                    print(f"prompt: {p.prompt} \n"
+                          f"negative prompt: {p.negative_prompt}")
 
                 # do all schedule
                 schedule_args.update({'image_i': image_i+1, 'loop_i': loop_i+1})
