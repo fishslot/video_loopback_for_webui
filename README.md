@@ -1,6 +1,7 @@
 # video_loopback_for_webui
 
 一个 Stable Diffusion WebUI 的脚本，用来做视频的 img2img，通过 loopback 和时序模糊的方法提高视频的稳定性，尽量降低 img2img 动画特有的闪烁感。
+这个脚本可以看作是 [loopback and superimpose](https://github.com/DiceOwl/StableDiffusionStuff/blob/main/loopback_superimpose.py) 和 [enhanced-img2img](https://github.com/OedoSoldier/enhanced-img2img) 的结合，并做了一些增强的功能。
 设计的目的是用于人物动画，一般来说需要搭配 DreamBooth 一起用，且对模型质量要求比较高。
 最终效果对 img2img 的参数设置非常非常敏感，需要仔细调整。这玩意挺玄学的，如果没调好还不如直接用 Batch img2img 。
 希望开源可以促进更多的人测试不同的参数配置，从而找到最优策略。
