@@ -223,7 +223,6 @@ class Script(scripts.Script):
             gr.Markdown(
                 "You can use any python expression in schedule <br>"
                 "Available parameters: math.*, image_i, loop_i <br>"
-                "Variable image_i and loop_i counts from zero <br>"
                 "If seed_schedule/subseed_schedule is not empty, fix_seed/fix_subseed is ignored <br>"
                 "These examples are just to demonstrate usage and are not recommended parameters."
             )
@@ -245,7 +244,7 @@ class Script(scripts.Script):
             )
             cfg_schedule = gr.Textbox(
                 label='cfg_schedule',
-                placeholder='Example: 7 if image_i in [0,1,5,7] else 11'
+                placeholder='Example: 7 if image_i in [1,5,7] else 11'
             )
             superimpose_alpha_schedule = gr.Textbox(
                 label='superimpose_alpha_schedule',
@@ -253,7 +252,7 @@ class Script(scripts.Script):
             )
             temporal_superimpose_schedule = gr.Textbox(
                 label='temporal_superimpose_schedule',
-                placeholder='Example: [0.03, 0.95, 0.02] if loop_i<3 else [0.0, 1.0, 0.0]'
+                placeholder='Example: [0.1, 0.8, 0.1] if loop_i<3 else [0.0, 1.0, 0.0]'
             )
             prompt_schedule = gr.Textbox(
                 label='prompt_schedule',
