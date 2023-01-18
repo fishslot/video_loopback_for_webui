@@ -3,22 +3,11 @@ import modules.scripts as scripts
 from modules import processing, shared
 from modules.processing import Processed
 
+import os, datetime, math, json, imghdr
 from PIL import Image
 from collections import deque
 from pathlib import Path
-import os, datetime, math, json
-
-
-def get_now_time():
-    SHA_TZ = datetime.timezone(
-        datetime.timedelta(hours=8),
-        name='Asia/Shanghai',
-    )
-    fmt = '%y%m%d_%H%M%S'
-    utc_now = datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc)
-    beijing_now = utc_now.astimezone(SHA_TZ)
-    stamp = beijing_now.strftime(fmt)
-    return stamp
+from typing import List
 
 
 def gr_show(visible=True):
@@ -34,10 +23,49 @@ def make_video(
         frame_rate=12, input_format='%07d.png'):
     os.system(
         f"ffmpeg -r {frame_rate} "
-        f"-i {Path(input_dir) / input_format} "
-        f"-c:v libx264 -preset ultrafast -qp 0 "
-        f"{output_filename} "
+        f" -i {Path(input_dir) / input_format} "
+        f" -c:v libx264 -qp 0 "
+        # f" -preset ultrafast "
+        f" {output_filename} "
     )
+
+
+def is_image(filename) -> bool:
+    filename = Path(filename)
+    return filename.is_file() and imghdr.what(filename) is not None
+
+
+def get_image_paths(input_dir) -> List[Path]:
+    path_list: List[Path] = shared.listfiles(input_dir)  # sorted
+    return [Path(p) for p in path_list if is_image(p)]
+
+
+def get_prompt_for_images(
+        image_path_list, prompt_suffix='.txt'):
+    prompt_list = []
+    for p in image_path_list:
+        prompt_filename = p.with_suffix(prompt_suffix)
+        if prompt_filename.is_file():
+            with open(prompt_filename, 'r') as f:
+                s = f.read().split(' --neg ', 1)
+                prompt_list.append(
+                    (s[0], s[1] if len(s) > 1 else None)
+                )
+        else:
+            prompt_list.append((None, None))
+    return prompt_list
+
+
+def get_now_time():
+    SHA_TZ = datetime.timezone(
+        datetime.timedelta(hours=8),
+        name='Asia/Shanghai',
+    )
+    fmt = '%y%m%d_%H%M%S'
+    utc_now = datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc)
+    beijing_now = utc_now.astimezone(SHA_TZ)
+    stamp = beijing_now.strftime(fmt)
+    return stamp
 
 
 class TemporalImageBlender:
@@ -161,6 +189,22 @@ class Script(scripts.Script):
     def ui(self, is_img2img):
         input_dir = gr.Textbox(label='input_directory')
         output_dir = gr.Textbox(label='output_directory')
+        # mask settings
+        use_mask = gr.Checkbox(label='use_mask(inpainting)', value=False)
+        with gr.Box(visible=False) as mask_settings_box:
+            mask_dir = gr.Textbox(
+                label='mask_directory',
+                placeholder='A directory or a file name. '
+                            'Keep this empty to use the alpha channel of image as mask'
+            )
+            # use_alpha_as_mask = gr.Checkbox(label='use_alpha_as_mask', value=False)
+            mask_threshold = gr.Slider(minimum=0, maximum=255, step=1, label='mask_threshold', value=128)
+        use_mask.change(
+            fn=lambda x: gr_show(x),
+            show_progress=False,
+            inputs=[use_mask], outputs=[mask_settings_box]
+        )
+        read_prompt_from_txt = gr.Checkbox(label='read_prompt_from_txt', value=False)
         output_frame_rate = gr.Number(label='output_frame_rate', precision=0, value=30)
         max_frames = gr.Number(label='max_frames', precision=0, value=9999)
         extract_nth_frame = gr.Number(label='extract_nth_frame', precision=0, value=1)
@@ -174,24 +218,8 @@ class Script(scripts.Script):
         )
         save_every_loop = gr.Checkbox(label='save_every_loop', value=False)
 
-        # mask settings
-        use_mask = gr.Checkbox(label='use_mask', value=False)
-        with gr.Box(visible=False) as mask_settings_box:
-            mask_dir = gr.Textbox(
-                label='mask_directory',
-                placeholder='keep this empty to use the alpha channel of image as mask'
-            )
-            # use_alpha_as_mask = gr.Checkbox(label='use_alpha_as_mask', value=False)
-            mask_threshold = gr.Slider(minimum=0, maximum=255, step=1, label='mask_threshold', value=128)
-
-        use_mask.change(
-            fn=lambda x: gr_show(x),
-            show_progress=False,
-            inputs=[use_mask], outputs=[mask_settings_box]
-        )
-
         # extra settings
-        with gr.Accordion('Advanced Settings of Video Loopback', open=False):
+        with gr.Accordion('Advanced Settings of Video Loopback', open=True):
             gr.Markdown(
                 "You can use any python expression in schedule <br>"
                 "Available parameters: math.*, image_i, loop_i <br>"
@@ -243,6 +271,10 @@ class Script(scripts.Script):
         return [
             input_dir,
             output_dir,
+            use_mask,
+            mask_dir,
+            mask_threshold,
+            read_prompt_from_txt,
             output_frame_rate,
             max_frames,
             extract_nth_frame,
@@ -252,9 +284,6 @@ class Script(scripts.Script):
             fix_subseed,
             temporal_superimpose_alpha_list,
             save_every_loop,
-            use_mask,
-            mask_dir,
-            mask_threshold,
             subseed_strength_schedule,
             denoising_schedule,
             seed_schedule,
@@ -270,6 +299,10 @@ class Script(scripts.Script):
     def run(self, p,
             input_dir,
             output_dir,
+            use_mask,
+            mask_dir,
+            mask_threshold,
+            read_prompt_from_txt,
             output_frame_rate,
             max_frames,
             extract_nth_frame,
@@ -279,9 +312,6 @@ class Script(scripts.Script):
             fix_subseed,
             temporal_superimpose_alpha_list,
             save_every_loop,
-            use_mask,
-            mask_dir,
-            mask_threshold,
             subseed_strength_schedule,
             denoising_schedule,
             seed_schedule,
@@ -292,6 +322,7 @@ class Script(scripts.Script):
             prompt_schedule,
             negative_prompt_schedule,
             batch_count_schedule):
+
         processing.fix_seed(p)
         p.do_not_save_grid = True
         p.do_not_save_samples = True
@@ -358,7 +389,7 @@ class Script(scripts.Script):
             extract_dir.mkdir()
             os.system(f"ffmpeg -i {input_dir} {extract_dir / '%07d.png'}")
             input_dir = extract_dir
-        image_list = shared.listfiles(input_dir)  # sorted
+        image_list = get_image_paths(input_dir)
         image_list = image_list[::extract_nth_frame]
         image_list = image_list[:max_frames]
         image_n = len(image_list)
@@ -373,11 +404,16 @@ class Script(scripts.Script):
 
         schedule_args = dict(**math.__dict__)
 
+        if read_prompt_from_txt:
+            default_prompt = p.prompt
+            default_neg_prompt = p.negative_prompt
+            prompt_list = get_prompt_for_images(image_list)
+
         for loop_i in range(loop_n):
             if loop_i == 1 and not save_every_loop:
-                image_list = shared.listfiles(output_frames_dir)  # sorted
+                image_list = get_image_paths(output_frames_dir)  # sorted
             elif loop_i > 0 and save_every_loop:
-                image_list = shared.listfiles(output_frames_dir)
+                image_list = get_image_paths(output_frames_dir)
                 output_frames_dir = output_frames_dir.parent/f"loop_{loop_i}"
                 output_frames_dir.mkdir(exist_ok=True, parents=True)
 
@@ -393,8 +429,17 @@ class Script(scripts.Script):
                 print(f"Loop:{loop_i + 1}/{loop_n},Image:{image_i + 1}/{image_n}")
                 # shared.state.job = f"Loop:{loop_i + 1}/{loop_n},Image:{image_i + 1}/{image_n}"
 
+                output_filename = output_frames_dir / f"{image_i:07d}.png"
+
+                if read_prompt_from_txt:
+                    prompt, neg_prompt = prompt_list[image_i]
+                    p.prompt = \
+                        prompt if prompt is not None else default_prompt
+                    p.negative_prompt = \
+                        neg_prompt if neg_prompt is not None else default_neg_prompt
+
                 # do all schedule
-                schedule_args.update({'image_i': image_i, 'loop_i': loop_i})
+                schedule_args.update({'image_i': image_i+1, 'loop_i': loop_i+1})
                 if subseed_strength_schedule:
                     p.subseed_strength = eval(subseed_strength_schedule, schedule_args)
                     print(f"subseed_strength_schedule:{p.subseed_strength}")
@@ -427,8 +472,6 @@ class Script(scripts.Script):
                 if batch_count_schedule:
                     p.n_iter = eval(batch_count_schedule, schedule_args)
                     print(f"batch_count_schedule:{p.n_iter}")
-
-                output_filename = output_frames_dir / f"{image_i:07d}.png"
 
                 # make base img for i2i
                 base_img = img_que.blend_temporal(temporal_superimpose_alpha_list)
