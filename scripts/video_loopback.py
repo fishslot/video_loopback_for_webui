@@ -1,80 +1,21 @@
 import gradio as gr
-import modules.scripts as scripts
+import modules
 from modules import processing, shared
 from modules.processing import Processed
 
-import os, datetime, math, json, imghdr
+import os, math, json
 from PIL import Image, ImageChops, ImageFilter
 from collections import deque
 from pathlib import Path
 from typing import List, Tuple, Iterable
 
+from scripts.video_loopback_utils.utils import \
+    resize_img, make_video, get_image_paths, \
+    get_prompt_for_images, blend_average, get_now_time
+
 
 def gr_show(visible=True):
     return {"visible": visible, "__type__": "update"}
-
-
-def resize_img(img, target_size):
-    return img.resize(target_size, Image.ANTIALIAS)
-
-
-def make_video(
-        input_dir, output_filename,
-        frame_rate=12, input_format='%07d.png'):
-    os.system(
-        f"ffmpeg -r {frame_rate} "
-        f" -i {Path(input_dir) / input_format} "
-        f" -c:v libx264 -qp 0 "
-        # f" -preset ultrafast "
-        f" {output_filename} "
-    )
-
-
-def is_image(filename) -> bool:
-    filename = Path(filename)
-    return filename.is_file() and imghdr.what(filename) is not None
-
-
-def get_image_paths(input_dir: Path) -> List[Path]:
-    path_list: List[Path] = shared.listfiles(input_dir)  # sorted
-    return [Path(p) for p in path_list if is_image(p)]
-
-
-def get_prompt_for_images(
-        image_path_list, prompt_suffix='.txt'
-) -> List[Tuple[str, str]]:
-    prompt_list = []
-    for p in image_path_list:
-        prompt_filename = p.with_suffix(prompt_suffix)
-        if prompt_filename.is_file():
-            with open(prompt_filename, 'r') as f:
-                s = f.read().split(' --neg ', 1)
-                prompt_list.append(
-                    (s[0], s[1] if len(s) > 1 else None)
-                )
-        else:
-            prompt_list.append((None, None))
-    return prompt_list
-
-
-def blend_average(img_iter: Iterable[Image.Image]) -> Image.Image:
-    img_iter = iter(img_iter)
-    new_img = next(img_iter)
-    for i, img in enumerate(img_iter, 1):
-        new_img = Image.blend(new_img, img, 1.0 / (i + 1))
-    return new_img
-
-
-def get_now_time() -> str:
-    SHA_TZ = datetime.timezone(
-        datetime.timedelta(hours=8),
-        name='Asia/Shanghai',
-    )
-    fmt = '%y%m%d_%H%M%S'
-    utc_now = datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc)
-    beijing_now = utc_now.astimezone(SHA_TZ)
-    stamp = beijing_now.strftime(fmt)
-    return stamp
 
 
 class TemporalImageBlender:
@@ -158,6 +99,23 @@ class TemporalImageBlender:
             mask = resize_img(mask, self.target_size)
         return mask
 
+    def blend_batch(self, new_imgs: Iterable[Image.Image],
+                    superimpose_alpha, mask=None):
+        if not new_imgs:
+            return self.current_image()
+
+        new_img: Image.Image = blend_average(new_imgs)
+        base_img = self.current_image().convert(new_img.mode)
+        base_img = resize_img(base_img, new_img.size)  # SD输出尺寸可能与用户指定尺寸不同
+        output_img = Image.blend(base_img, new_img, superimpose_alpha)
+
+        if mask is None:
+            mask = self.current_mask()
+        if mask:
+            output_img = Image.composite(output_img, base_img, mask)
+
+        return output_img
+
     def blend_temporal(self, alpha_list, mask=None):
         if len(alpha_list) != self.window_size:
             raise ValueError('the length of temporal_superimpose_alpha_list must be fixed')
@@ -176,22 +134,6 @@ class TemporalImageBlender:
         if mask:
             output_img = Image.composite(output_img, self.current_image(), mask)
             # 当mask像素取255时为img1,取0时为img2
-
-        return output_img
-
-    def blend_batch(self, new_imgs: Iterable[Image.Image],
-                    superimpose_alpha, mask=None):
-        if not new_imgs:
-            return self.current_image()
-
-        new_img = blend_average(new_imgs)
-        base_img = self.current_image().convert(new_img.mode)
-        output_img = Image.blend(base_img, new_img, superimpose_alpha)
-
-        if mask is None:
-            mask = self.current_mask()
-        if mask:
-            output_img = Image.composite(output_img, base_img, mask)
 
         return output_img
 
@@ -217,7 +159,7 @@ class TemporalImageBlender:
         )
 
 
-class Script(scripts.Script):
+class Script(modules.scripts.Script):
     def title(self):
         return "Video Loopback"
 
@@ -236,7 +178,7 @@ class Script(scripts.Script):
                             'Keep this empty to use the alpha channel of image as mask'
             )
             # use_alpha_as_mask = gr.Checkbox(label='use_alpha_as_mask', value=False)
-            mask_threshold = gr.Slider(minimum=0, maximum=255, step=1, label='mask_threshold', value=127)
+            mask_threshold = gr.Slider(label='mask_threshold', minimum=0, maximum=255, step=1, value=127)
         use_mask.change(
             fn=lambda x: gr_show(x),
             show_progress=False,
@@ -246,13 +188,14 @@ class Script(scripts.Script):
         output_frame_rate = gr.Number(label='output_frame_rate', precision=0, value=30)
         max_frames = gr.Number(label='max_frames', precision=0, value=9999)
         extract_nth_frame = gr.Number(label='extract_nth_frame', precision=0, value=1)
-        loop_n = gr.Number(label='loop_n', precision=0, value=5)
-        superimpose_alpha = gr.Number(label='superimpose_alpha', precision=None, value=0.3)
+        loop_n = gr.Number(label='loop_n', precision=0, value=10)
+        superimpose_alpha = gr.Slider(label='superimpose_alpha', minimum=0, maximum=1, step=0.01, value=0.25)
         fix_seed = gr.Checkbox(label='fix_seed', value=True)
         fix_subseed = gr.Checkbox(label='fix_subseed', value=False)
         temporal_superimpose_alpha_list = gr.Textbox(
             label='temporal_superimpose_alpha_list',
-            value='0.03,0.95,0.02'
+            value='1',
+            placeholder='0.03,0.95,0.02'
         )
         save_every_loop = gr.Checkbox(label='save_every_loop', value=True)
 
@@ -278,11 +221,11 @@ class Script(scripts.Script):
             )
             subseed_schedule = gr.Textbox(
                 label='subseed_schedule',
-                placeholder='Example: 112233+image_i'
+                placeholder='Example: 112233+image_i*2'
             )
             cfg_schedule = gr.Textbox(
                 label='cfg_schedule',
-                placeholder='Example: 7 if image_i in [1,5,7] else 11'
+                placeholder='Example: 7 if image_i in {1,5,7} else 8'
             )
             superimpose_alpha_schedule = gr.Textbox(
                 label='superimpose_alpha_schedule',
@@ -298,7 +241,7 @@ class Script(scripts.Script):
             )
             negative_prompt_schedule = gr.Textbox(
                 label='negative_prompt_schedule',
-                placeholder="Example: f' low quality, (blurry):{1.0+loop_i/20}'"
+                placeholder="Example: f' low quality, (blurry:{1.0+loop_i/30})'"
             )
             batch_count_schedule = gr.Textbox(
                 label='batch_count_schedule',
@@ -308,7 +251,7 @@ class Script(scripts.Script):
                 label='image_post_processing_schedule',
                 placeholder="Example: lambda img: "
                             "img.filter(ImageFilter.EDGE_ENHANCE).filter(ImageFilter.SMOOTH) "
-                            "if loop_i in {6,8} else img"
+                            "if loop_i in {6,8} else img "
             )
 
         return [
@@ -453,7 +396,7 @@ class Script(scripts.Script):
         assert len(temporal_superimpose_alpha_list) % 2 == 1
 
         shared.state.begin()
-        shared.state.job_count = loop_n * image_n
+        shared.state.job_count = loop_n * image_n * p.n_iter
 
         schedule_args = dict(ImageFilter=ImageFilter, **math.__dict__)
 
@@ -465,6 +408,9 @@ class Script(scripts.Script):
         last_img_que = None
 
         for loop_i in range(loop_n):
+            if shared.state.interrupted:
+                break
+
             if loop_i > 0:
                 image_list = get_image_paths(output_frames_dir)
             output_frames_dir = output_dir/"output_frames"/f"loop_{loop_i+1}"
@@ -479,19 +425,13 @@ class Script(scripts.Script):
             )
 
             for image_i, image_path in enumerate(image_list):
+                if shared.state.interrupted:
+                    break
+
                 print(f"Loop:{loop_i + 1}/{loop_n},Image:{image_i + 1}/{image_n}")
                 # shared.state.job = f"Loop:{loop_i + 1}/{loop_n},Image:{image_i + 1}/{image_n}"
 
                 output_filename = output_frames_dir / f"{image_i:07d}.png"
-
-                if read_prompt_from_txt:
-                    prompt, neg_prompt = prompt_list[image_i]
-                    p.prompt = \
-                        prompt if prompt is not None else default_prompt
-                    p.negative_prompt = \
-                        neg_prompt if neg_prompt is not None else default_neg_prompt
-                    print(f"prompt: {p.prompt} \n"
-                          f"negative prompt: {p.negative_prompt}")
 
                 # do all schedule
                 schedule_args.update({'image_i': image_i+1, 'loop_i': loop_i+1})
@@ -531,6 +471,19 @@ class Script(scripts.Script):
                 if image_post_processing_schedule:
                     image_post_processing = eval(image_post_processing_schedule, schedule_args)
                     print(f"image_post_processing_schedule:{image_post_processing_schedule}")
+
+                if read_prompt_from_txt:
+                    prompt, neg_prompt = prompt_list[image_i]
+                    if prompt is not None:
+                        p.prompt = prompt
+                    elif not prompt_schedule:
+                        p.prompt = default_prompt
+                    if neg_prompt is not None:
+                        p.negative_prompt = neg_prompt
+                    elif not negative_prompt_schedule:
+                        p.negative_prompt = default_neg_prompt
+                    print(f"prompt: {p.prompt} \n"
+                          f"negative prompt: {p.negative_prompt}")
 
                 # make base img for i2i
                 # base_img = img_que.blend_temporal(temporal_superimpose_alpha_list)
