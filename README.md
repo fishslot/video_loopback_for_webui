@@ -60,9 +60,11 @@ mask_directory 里面可以填单张图片的路径，也可以填一个文件�
 使用 python 语法，输入表达式即可，可以使用的变量有： image_i 表示当前处理的是第几张图片、loop_i 表示当前是第几次迭代。可以直接使用 math 库中的内容。
 
 在 `image_post_processing_schedule` 可以使用 PIL.ImageFilter 模块，可以有效降低画面的模糊感，比如可以设置为：
+
 '''
 lambda img:  img.filter(ImageFilter.EDGE_ENHANCE).filter(ImageFilter.SMOOTH) if loop_i in {5,8} else img
 '''
+
 其中 `{5,8}` 具体填什么数字需要根据使用的模型做出改变。
 
 演示中使用的的训练样本：
