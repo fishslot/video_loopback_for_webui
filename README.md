@@ -61,9 +61,9 @@ mask_directory 里面可以填单张图片的路径，也可以填一个文件�
 
 在 `image_post_processing_schedule` 可以使用 PIL.ImageFilter 模块，可以有效降低画面的模糊感，比如可以设置为：
 
-'''
+```
 lambda img:  img.filter(ImageFilter.EDGE_ENHANCE).filter(ImageFilter.SMOOTH) if loop_i in {5,8} else img
-'''
+```
 
 其中 `{5,8}` 具体填什么数字需要根据使用的模型做出改变。
 
