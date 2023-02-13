@@ -25,7 +25,7 @@ https://user-images.githubusercontent.com/122792358/218375476-a4116c74-5a9a-41e2
 
 原视频来自Live3D（感谢 Live3D 的工作!!!）
 
-##安装方法：
+## 安装方法
 
 按照正常的安装 WebUI extention 的流程安装即可。
 
