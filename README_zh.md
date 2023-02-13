@@ -74,9 +74,9 @@ lambda img:  img.filter(ImageFilter.EDGE_ENHANCE).filter(ImageFilter.SMOOTH) if 
 
 感谢 FastDVDNet 的工作。
 
-为什么使用 FastDVDNet：其实没什么特别的原因，可能是因为他们名字里有fast吧 :) 后续应该还会尝试用其他模型。
+为什么使用 FastDVDNet：其实没什么特别的原因，可能是因为他们名字里有fast吧 :) 后续应该还会尝试用其他模型。如果有推荐的模型，请告诉我。
 
-演示中使用的的训练样本：
+## 演示中使用的的训练样本
 
 ![twintails (1)](https://user-images.githubusercontent.com/122792358/212681343-c0665891-6467-4bf2-a9d7-3deb1f72d1a9.png)![twintails (2)](https://user-images.githubusercontent.com/122792358/212681349-adf69c2c-0523-438c-ac13-c9ed1f09dffd.png)![twintails (3)](https://user-images.githubusercontent.com/122792358/212681351-12a437f4-d3b6-438a-a619-555aed1a82f3.png)![twintails (4)](https://user-images.githubusercontent.com/122792358/212681355-ef454e45-b349-4080-8245-9aac3b8f8126.png)
 
