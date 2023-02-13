@@ -13,8 +13,8 @@ The original video is from Live3D (thanks for Live3D's work!!!).
 
 This is a Stable Diffusion WebUI extension for video img2img, which improves the stability of the video through loopback and temporal blurring methods, 
 trying to reduce the flicker that is typical of img2img animations. 
-This script can be seen as a video version of [loopback and superimpose](https://github.com/DiceOwl/StableDiffusionStuff/blob/main/loopback_superimpose.py), 
-with some enhanced features.
+This extension can be seen as a video version of [loopback and superimpose](https://github.com/DiceOwl/StableDiffusionStuff/blob/main/loopback_superimpose.py), 
+with some enhanced features. It's a quite simple method, but sometimes useful.
 
 The design is intended for character animations and usually needs to be used with Lora or DreamBooth. 
 The model quality requirements are relatively high, and the stability of the model itself will greatly affect the difficulty of subsequent parameter adjustment.
