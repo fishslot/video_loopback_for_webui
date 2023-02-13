@@ -41,6 +41,10 @@ Install it like any normal WebUI extension installation process.
 
 Also, you need to install ffmpeg in advance.
 
+## Usage
+
+In the img2img tab or inpainting tab, find the script named "Video Loopback".
+
 # Features
 ## Loopback & superimpose & batch blend
 The input_directory can be filled with the path of a video file or a folder containing images.
