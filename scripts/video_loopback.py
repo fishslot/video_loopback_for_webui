@@ -12,6 +12,7 @@ from typing import List, Tuple, Iterable
 from scripts.video_loopback_utils.utils import \
     resize_img, make_video, get_image_paths, \
     get_prompt_for_images, blend_average, get_now_time
+from scripts.video_loopback_utils.fastdvdnet_processor import FastDVDNet
 
 
 def gr_show(visible=True):
@@ -167,14 +168,17 @@ class Script(modules.scripts.Script):
         return is_img2img
 
     def ui(self, is_img2img):
-        input_dir = gr.Textbox(label='input_directory')
+        input_dir = gr.Textbox(
+            label='input_directory',
+            placeholder='A directory or a file'
+        )
         output_dir = gr.Textbox(label='output_directory')
         # mask settings
         use_mask = gr.Checkbox(label='use_mask(inpainting)', value=False)
         with gr.Box(visible=False) as mask_settings_box:
             mask_dir = gr.Textbox(
                 label='mask_directory',
-                placeholder='A directory or a file name. '
+                placeholder='A directory or a file. '
                             'Keep this empty to use the alpha channel of image as mask'
             )
             # use_alpha_as_mask = gr.Checkbox(label='use_alpha_as_mask', value=False)
@@ -254,6 +258,27 @@ class Script(modules.scripts.Script):
                             "if loop_i in {6,8} else img "
             )
 
+            video_post_process_method = gr.Dropdown(
+                label='video_post_process_method',
+                choices=['None', 'FastDVDNet'],
+                value='None'
+            )
+            video_post_process_alpha = gr.Slider(
+                label='video_post_process_alpha',
+                minimum=0, maximum=1, step=0.01, value=0.3
+            )
+            with gr.Box(visible=False) as video_post_process_fastdvdnet_box:
+                fastdvdnet_noise_sigma = gr.Slider(
+                    label='fastdvdnet_noise_sigma',
+                    minimum=0, maximum=255, step=1, value=60
+                )
+            video_post_process_method.change(
+                lambda x: gr_show(x == 'FastDVDNet'),
+                show_progress=False,
+                inputs=[video_post_process_method],
+                outputs=[video_post_process_fastdvdnet_box]
+            )
+
         return [
             input_dir,
             output_dir,
@@ -280,7 +305,10 @@ class Script(modules.scripts.Script):
             prompt_schedule,
             negative_prompt_schedule,
             batch_count_schedule,
-            image_post_processing_schedule
+            image_post_processing_schedule,
+            video_post_process_method,
+            video_post_process_alpha,
+            fastdvdnet_noise_sigma
         ]
 
     def run(self, p,
@@ -309,7 +337,10 @@ class Script(modules.scripts.Script):
             prompt_schedule,
             negative_prompt_schedule,
             batch_count_schedule,
-            image_post_processing_schedule):
+            image_post_processing_schedule,
+            video_post_process_method,
+            video_post_process_alpha,
+            fastdvdnet_noise_sigma):
 
         processing.fix_seed(p)
         p.do_not_save_grid = True
@@ -352,6 +383,10 @@ class Script(modules.scripts.Script):
             "negative_prompt_schedule": negative_prompt_schedule,
             "batch_count_schedule": batch_count_schedule,
             "image_post_processing_schedule": image_post_processing_schedule,
+            "video_post_process_method": video_post_process_method,
+            "video_post_process_alpha": video_post_process_alpha,
+            "fastdvdnet_noise_sigma": fastdvdnet_noise_sigma,
+
             # "p": p.__dict__
             "seed": p.seed,
             "subseed": p.subseed,
@@ -362,10 +397,11 @@ class Script(modules.scripts.Script):
             "sampler_name": p.sampler_name,
             "width": p.width,
             "height": p.height,
-            "denoising_strength": p.denoising_strength,
+            "denoising_strength": getattr(p, 'denoising_strength', None),
             "batch_size": p.batch_size,
             "n_iter": p.n_iter,
             "steps": p.steps,
+            "clip_skip": shared.opts.CLIP_stop_at_last_layers,
             "model_name": shared.sd_model.sd_checkpoint_info.model_name,
             "model_hash": shared.sd_model.sd_model_hash
         }
@@ -394,6 +430,15 @@ class Script(modules.scripts.Script):
             [float(x) for x in temporal_superimpose_alpha_list.split(',') if x
              ] or [1]
         assert len(temporal_superimpose_alpha_list) % 2 == 1
+
+        # make video_post_processor
+        video_post_processor = None
+        if 'FastDVDNet' == video_post_process_method:
+            print('using FastDVDNet as video post processor')
+            video_post_processor = FastDVDNet(
+                alpha=video_post_process_alpha,
+                noise_sigma=fastdvdnet_noise_sigma
+            )
 
         shared.state.begin()
         shared.state.job_count = loop_n * image_n * p.n_iter
@@ -520,6 +565,10 @@ class Script(modules.scripts.Script):
                     p.seed = processed.seed + len(processed.images)
                 if not fix_subseed and not subseed_schedule:
                     p.subseed = processed.subseed + len(processed.images)
+
+            # post process
+            if video_post_processor is not None:
+                video_post_processor.process(output_frames_dir)
 
             if save_every_loop:
                 output_video_name = f'{timestamp}-loop_{loop_i+1}.mp4'
