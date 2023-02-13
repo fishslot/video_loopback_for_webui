@@ -118,4 +118,4 @@ I will try using other models in the future. If you have any recommended models,
 
 The key point of the entire process is model training, which has high requirements for the model. A high-quality and stable model must be trained first in order for this to work, and the script serves as a helper.
 
-![visitor](https://count.getloli.com/get/@live3d?theme=gelbooru)
+![visitor](https://count.getloli.com/get/@video_loopback?theme=gelbooru)
