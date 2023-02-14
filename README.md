@@ -10,7 +10,8 @@ https://user-images.githubusercontent.com/122792358/218375476-a4116c74-5a9a-41e2
 The original video is from Live3D (thanks for Live3D's work!!!).
 # News
 I made some change on the [sd-webui-controlnet](https://github.com/Mikubill/sd-webui-controlnet) by [Mikubill](https://github.com/Mikubill), now ,try install this version https://github.com/fishslot/sd-webui-controlnet.
-After you start WebUI, you have to run controlnet once without video loopback, and then, if nothing get wrong, they can work together.
+After you start WebUI, you have to run controlnet once without video loopback, and then, make sure there is no image in controlnet's ui.
+If nothing get wrong, they can work together now.
 
 ## Introduction
 
