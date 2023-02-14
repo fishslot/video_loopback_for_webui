@@ -38,7 +38,7 @@ class TemporalImageBlender:
         self.current_pos = 0
 
         self.use_mask = use_mask
-        self.mask_dir = Path(mask_dir)
+        self.mask_dir = Path(mask_dir) if mask_dir else None
         self.mask_threshold = mask_threshold
 
     def read_image_resize(self, path) -> Image.Image:
@@ -90,14 +90,17 @@ class TemporalImageBlender:
             if 'RGBA' == self.current_image().mode:
                 mask = self.current_image().split()[-1]
             else:
-                print(f'Warning: "{self.image_path_list[self.current_i]}" has no mask')
+                print('current image mode: ', self.current_image().mode)
+                print(f'Warning: "{self.image_path_list[self.current_i]}" has no alpha mask')
         # apply threshold
         if mask is not None:
             mask = mask.convert('L').point(
                 lambda x: 255 if x > self.mask_threshold else 0)
-        # resize mask
-        if mask.size != self.target_size:
-            mask = resize_img(mask, self.target_size)
+
+            # resize mask
+            if mask.size != self.target_size:
+                mask = resize_img(mask, self.target_size)
+
         return mask
 
     def blend_batch(self, new_imgs: Iterable[Image.Image],
@@ -138,11 +141,11 @@ class TemporalImageBlender:
 
         return output_img
 
-    def blend_temporal_diff(self, alpha_list, reference_img_list):
+    def blend_temporal_diff(self, alpha_list, reference_img_list, mask=None):
         if len(alpha_list) != self.window_size:
             raise ValueError('the length of temporal_superimpose_alpha_list must be fixed')
         hws = self.window_size // 2  # half window size
-        return blend_average(
+        output_img = blend_average(
             Image.composite(
                 self.current_image(), img,
                 mask=ImageChops.difference(
@@ -158,6 +161,19 @@ class TemporalImageBlender:
                 reference_img_list
             )
         )
+
+        if mask is None:
+            mask = self.current_mask()
+        if mask:
+            output_img = Image.composite(output_img, self.current_image(), mask)
+            # 当mask像素取255时为img1,取0时为img2
+
+        return output_img
+
+    def save_current_output_image(self, path, img: Image.Image):
+        if self.use_mask and not self.mask_dir:
+            img.putalpha(self.current_mask())
+        img.save(path)
 
 
 class Script(modules.scripts.Script):
@@ -178,6 +194,7 @@ class Script(modules.scripts.Script):
         with gr.Box(visible=False) as mask_settings_box:
             mask_dir = gr.Textbox(
                 label='mask_directory',
+                value='',
                 placeholder='A directory or a file. '
                             'Keep this empty to use the alpha channel of image as mask'
             )
@@ -557,7 +574,8 @@ class Script(modules.scripts.Script):
                 if image_post_processing:
                     output_img = image_post_processing(output_img)
 
-                output_img.save(output_filename)
+                # output_img.save(output_filename)
+                img_que.save_current_output_image(output_filename, output_img)
 
                 img_que.move_to_next()
 
