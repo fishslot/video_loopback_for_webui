@@ -72,11 +72,12 @@ which can reduce the side effects of `fix_seed` to a certain extent. Based on my
 `subseed_strength` can be set a little more aggressive, for example 0.9 
 
 ## Inpainting
-Switch to the inpainting page and check use_mask, and you can use the inpainting function. 
-Mask blur, Mask mode, Mask content, Inpaint area, Only masked padding and so on will work as usual.
+Switch to the inpainting page and check `use_mask`, and you can use the inpainting function. 
+`Mask blur`, `Mask mode`, `Mask content`, `Inpaint area`, `Only masked padding` and so on will work as usual.
 
-The mask_directory can be filled with the path of a single image or a folder. 
+The `mask_directory` can be filled with the path of a single image or a folder. 
 If it is a folder, each mask in the folder must have the same file name as the input image.
+If it is empty, the alpha channel of image will be use as the mask.
 
 ## Temporal blend
 In simple terms, each frame is first blended with its time-adjacent frames and then sent to the SD. 
