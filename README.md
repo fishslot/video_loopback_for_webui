@@ -45,6 +45,8 @@ Also, you need to install ffmpeg in advance.
 
 In the img2img tab or inpainting tab, find the script named "Video Loopback".
 
+You need to make sure that there is an image in the webui interface before you start processing (just drag and drop an image).
+
 # Features
 ## Loopback & superimpose & batch blend
 The input_directory can be filled with the path of a video file or a folder containing images.
