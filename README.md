@@ -93,6 +93,8 @@ and the first weight on the right represents the weight of the next frame, and s
 The weights do not need to be added up to 1, and normalization will be automatically performed internally. 
 If the `temporal_superimpose_alpha_list` is empty or only has a single number, it means that this function is not enabled.
 
+In fact, i found that `video_post_process_method` is more useful than temporal blend.
+
 ## Schedule
 
 Using Python syntax, input the expression, and the available variables are: image_i representing the number of the current processed image, 
