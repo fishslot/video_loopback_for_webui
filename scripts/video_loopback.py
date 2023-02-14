@@ -565,7 +565,9 @@ class Script(modules.scripts.Script):
 
                 p.init_images = [base_img]
                 processed = processing.process_images(p)
-                processed_imgs: List[Image.Image] = processed.images
+
+                processed_imgs = processed.images
+                processed_imgs = processed_imgs[:p.n_iter*p.batch_size]
 
                 # batch blend
                 output_img = img_que.blend_batch(
