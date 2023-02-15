@@ -99,13 +99,13 @@ In fact, i found that `video_post_process_method` is more useful than temporal b
 
 ## Schedule
 
-Using Python syntax, input the expression, and the available variables are: image_i representing the number of the current processed image, 
-loop_i representing the current iteration. 
+Using Python syntax, input the expression, and the available variables are: `image_i` representing the number of the current processed image, 
+`loop_i` representing the current iteration. 
 
-You can use contents in the math library directly.
+You can use contents in the `math` library directly.
 
 ## Deblur
-In `image_post_processing_schedule`, you can use the PIL.ImageFilter module to effectively reduce the blur of the image, for example, you can set it as:
+In `image_post_processing_schedule`, you can use the `PIL.ImageFilter` module to effectively reduce the blur of the image, for example, you can set it as:
 
 ```
 lambda img: img.filter(ImageFilter.EDGE_ENHANCE).filter(ImageFilter.SMOOTH) if loop_i in {5,8} else img
