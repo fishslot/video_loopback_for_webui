@@ -10,8 +10,6 @@ https://user-images.githubusercontent.com/122792358/218375476-a4116c74-5a9a-41e2
 The original video is from Live3D (thanks for Live3D's work!!!).
 ## News
 I made some change on the [sd-webui-controlnet](https://github.com/Mikubill/sd-webui-controlnet) by [Mikubill](https://github.com/Mikubill), now ,try install this version https://github.com/fishslot/sd-webui-controlnet.
-After you start WebUI, you have to run controlnet once without video loopback, and then, make sure there is no image in controlnet's ui.
-If nothing get wrong, they can work together now.
 
 ## Introduction
 
@@ -119,9 +117,10 @@ Where {5,8} specifically depends on the model being used.
 
 Use `video_post_process_method` to further improve the stability of the video. Currently, only FastDVDNet is supported.
 
-Thanks to the work of FastDVDNet.
+Thanks to the work of [FastDVDNet](https://github.com/m-tassano/fastdvdnet).
 
 Why use FastDVDNet: There is no special reason, it is a random choice, maybe because their name has "fast" :) 
+
 I will try using other models in the future. If you have any recommended models, please let me know.
 
 ## Training samples used in the demonstration
