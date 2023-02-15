@@ -218,6 +218,11 @@ class Script(modules.scripts.Script):
             value='1',
             placeholder='0.03,0.95,0.02'
         )
+        reference_frames_dir = gr.Textbox(
+            label='reference_frames_directory',
+            placeholder='Reference frames for temporal superimpose and controlnet. '
+                        'Keep this empty to use the input frames as reference. '
+        )
         save_every_loop = gr.Checkbox(label='save_every_loop', value=True)
 
         # extra settings
@@ -311,6 +316,7 @@ class Script(modules.scripts.Script):
             fix_seed,
             fix_subseed,
             temporal_superimpose_alpha_list,
+            reference_frames_dir,
             save_every_loop,
             subseed_strength_schedule,
             denoising_schedule,
@@ -343,6 +349,7 @@ class Script(modules.scripts.Script):
             fix_seed,
             fix_subseed,
             temporal_superimpose_alpha_list,
+            reference_frames_dir,
             save_every_loop,
             subseed_strength_schedule,
             denoising_schedule,
@@ -388,6 +395,7 @@ class Script(modules.scripts.Script):
             "fix_seed": fix_seed,
             "fix_subseed": fix_subseed,
             "temporal_superimpose_alpha_list": temporal_superimpose_alpha_list,
+            "reference_frames_dir": reference_frames_dir,
             "save_every_loop": save_every_loop,
             "subseed_strength_schedule": subseed_strength_schedule,
             "denoising_schedule": denoising_schedule,
@@ -467,7 +475,20 @@ class Script(modules.scripts.Script):
             default_neg_prompt = p.negative_prompt
             prompt_list = get_prompt_for_images(image_list)
 
-        last_img_que = None
+        # init references
+        if not reference_frames_dir:
+            reference_image_list = image_list
+        else:
+            reference_image_list = get_image_paths(reference_frames_dir)
+            reference_image_list = reference_image_list[::extract_nth_frame]
+            reference_image_list = reference_image_list[:max_frames]
+        reference_img_que = TemporalImageBlender(
+            image_path_list=reference_image_list,
+            window_size=len(temporal_superimpose_alpha_list),
+            target_size=(p.width, p.height),
+            use_mask=use_mask, mask_dir=mask_dir,
+            mask_threshold=mask_threshold
+        )
 
         for loop_i in range(loop_n):
             if shared.state.interrupted:
@@ -549,25 +570,31 @@ class Script(modules.scripts.Script):
 
                 # make base img for i2i
                 # base_img = img_que.blend_temporal(temporal_superimpose_alpha_list)
-                if last_img_que is not None:
+                if 0 == loop_i:
+                    base_img = img_que.current_image()
+                else:
                     base_img = img_que.blend_temporal_diff(
                         temporal_superimpose_alpha_list,
-                        reference_img_list=last_img_que.window
+                        reference_img_list=reference_img_que.window
                     )
-                    last_img_que.move_to_next()
-                else:
-                    base_img = img_que.current_image()
+                    reference_img_que.move_to_next()
 
                 print(f"seed:{p.seed}, subseed:{p.subseed}")
 
+                p.init_images = [base_img]
                 p.image_mask = img_que.current_mask()
                 # mask像素为0表示不变
 
-                p.init_images = [base_img]
+                # 使用 sd-webui-controlnet
+                p.control_net_input_image = reference_img_que.current_image()
+
                 processed = processing.process_images(p)
 
                 processed_imgs = processed.images
-                processed_imgs = processed_imgs[:p.n_iter*p.batch_size]
+                processed_imgs = [
+                    img for img in processed_imgs
+                    if isinstance(img, Image.Image)
+                ][:p.n_iter*p.batch_size]
 
                 # batch blend
                 output_img = img_que.blend_batch(
@@ -598,9 +625,7 @@ class Script(modules.scripts.Script):
                     frame_rate=output_frame_rate
                 )
 
-            if last_img_que is None:
-                last_img_que = img_que
-            last_img_que.reset()
+            reference_img_que.reset()
 
         output_video_name = f'{timestamp}.mp4'
         make_video(
