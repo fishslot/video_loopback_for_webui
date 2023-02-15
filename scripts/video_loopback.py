@@ -577,7 +577,6 @@ class Script(modules.scripts.Script):
                         temporal_superimpose_alpha_list,
                         reference_img_list=reference_img_que.window
                     )
-                    reference_img_que.move_to_next()
 
                 print(f"seed:{p.seed}, subseed:{p.subseed}")
 
@@ -607,6 +606,8 @@ class Script(modules.scripts.Script):
                 img_que.save_current_output_image(output_filename, output_img)
 
                 img_que.move_to_next()
+                if reference_img_que is not None:
+                    reference_img_que.move_to_next()
 
                 if not fix_seed and not seed_schedule:
                     p.seed = processed.seed + len(processed.images)
