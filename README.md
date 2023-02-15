@@ -99,7 +99,7 @@ In fact, i found that `video_post_process_method` is more useful than temporal b
 
 ## Schedule
 
-Using Python syntax, input the expression, and the available variables are: `image_i` representing the number of the current processed image, 
+Using Python syntax, input the expression, and the available variables are: `image_i` representing the serial number of the current processed image, 
 `loop_i` representing the current iteration. 
 
 You can use contents in the `math` library directly.
