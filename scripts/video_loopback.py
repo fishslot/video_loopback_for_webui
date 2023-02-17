@@ -213,6 +213,11 @@ class Script(modules.scripts.Script):
         superimpose_alpha = gr.Slider(label='superimpose_alpha', minimum=0, maximum=1, step=0.01, value=0.25)
         fix_seed = gr.Checkbox(label='fix_seed', value=True)
         fix_subseed = gr.Checkbox(label='fix_subseed', value=False)
+        temporal_superimpose_method = gr.Dropdown(
+            label='temporal_superimpose_method',
+            choices=['simple', 'difference mask from reference'],
+            value='simple'
+        )
         temporal_superimpose_alpha_list = gr.Textbox(
             label='temporal_superimpose_alpha_list',
             value='1',
@@ -314,6 +319,7 @@ class Script(modules.scripts.Script):
             superimpose_alpha,
             fix_seed,
             fix_subseed,
+            temporal_superimpose_method,
             temporal_superimpose_alpha_list,
             reference_frames_dir,
             save_every_loop,
@@ -347,6 +353,7 @@ class Script(modules.scripts.Script):
             superimpose_alpha,
             fix_seed,
             fix_subseed,
+            temporal_superimpose_method,
             temporal_superimpose_alpha_list,
             reference_frames_dir,
             save_every_loop,
@@ -393,6 +400,7 @@ class Script(modules.scripts.Script):
             "superimpose_alpha": superimpose_alpha,
             "fix_seed": fix_seed,
             "fix_subseed": fix_subseed,
+            "temporal_superimpose_method": temporal_superimpose_method,
             "temporal_superimpose_alpha_list": temporal_superimpose_alpha_list,
             "reference_frames_dir": reference_frames_dir,
             "save_every_loop": save_every_loop,
@@ -574,11 +582,13 @@ class Script(modules.scripts.Script):
                           f"negative prompt: {p.negative_prompt}")
 
                 # make base img for i2i
-                # base_img = img_que.blend_temporal(temporal_superimpose_alpha_list)
-                base_img = img_que.blend_temporal_diff(
-                    temporal_superimpose_alpha_list,
-                    reference_img_list=reference_img_que.window
-                )
+                if "difference mask from reference" == temporal_superimpose_method:
+                    base_img = img_que.blend_temporal_diff(
+                        temporal_superimpose_alpha_list,
+                        reference_img_list=reference_img_que.window
+                    )
+                else:
+                    base_img = img_que.blend_temporal(temporal_superimpose_alpha_list)
 
                 print(f"seed:{p.seed}, subseed:{p.subseed}")
 
