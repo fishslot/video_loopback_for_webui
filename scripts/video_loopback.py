@@ -275,11 +275,10 @@ class Script(modules.scripts.Script):
             )
             image_post_processing_schedule = gr.Textbox(
                 label='image_post_processing_schedule',
-                placeholder="Example: lambda img: "
-                            "img.filter(ImageFilter.EDGE_ENHANCE).filter(ImageFilter.SMOOTH) "
+                placeholder="Example: "
+                            "lambda img: img.filter(ImageFilter.EDGE_ENHANCE).filter(ImageFilter.SMOOTH) "
                             "if loop_i in {6,8} else img "
             )
-
             video_post_process_method = gr.Dropdown(
                 label='video_post_process_method',
                 choices=['None', 'FastDVDNet'],
@@ -548,8 +547,14 @@ class Script(modules.scripts.Script):
                     p.negative_prompt = eval(negative_prompt_schedule, schedule_args)
                     print(f"negative_prompt_schedule:{p.negative_prompt}")
                 if batch_count_schedule:
-                    p.n_iter = eval(batch_count_schedule, schedule_args)
-                    print(f"batch_count_schedule:{p.n_iter}")
+                    new_batch_count = eval(batch_count_schedule, schedule_args)
+                    if isinstance(new_batch_count, tuple):
+                        p.n_iter, p.batch_size = new_batch_count
+                        print(f"batch_count_schedule: batch_count:{p.n_iter}, batch_size:{p.batch_size}")
+                    else:
+                        p.n_iter = new_batch_count
+                        print(f"batch_count_schedule:{p.n_iter}")
+
                 image_post_processing = None
                 if image_post_processing_schedule:
                     image_post_processing = eval(image_post_processing_schedule, schedule_args)
@@ -570,13 +575,10 @@ class Script(modules.scripts.Script):
 
                 # make base img for i2i
                 # base_img = img_que.blend_temporal(temporal_superimpose_alpha_list)
-                if 0 == loop_i:
-                    base_img = img_que.current_image()
-                else:
-                    base_img = img_que.blend_temporal_diff(
-                        temporal_superimpose_alpha_list,
-                        reference_img_list=reference_img_que.window
-                    )
+                base_img = img_que.blend_temporal_diff(
+                    temporal_superimpose_alpha_list,
+                    reference_img_list=reference_img_que.window
+                )
 
                 print(f"seed:{p.seed}, subseed:{p.subseed}")
 
