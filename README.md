@@ -51,7 +51,7 @@ You need to make sure that there is an image in the webui interface before you s
 
 # Features
 ## Loopback & superimpose & batch blend
-The input_directory can be filled with the path of a video file or a folder containing images.
+The `input_directory` can be filled with the path of a video file or a folder containing images.
 
 Each time the SD generates an image, 
 the generated image is blended (superimposed) with the original image to form a new original image for the next generation. 
