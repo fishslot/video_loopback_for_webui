@@ -130,6 +130,8 @@ class TemporalImageBlender:
                 alpha_list[-(self.current_i + hws + 1):],
                 self.window):
             now_fac_sum += factor
+            if now_fac_sum <= 0:
+                continue
             img = img.convert(output_img.mode)
             output_img = Image.blend(output_img, img, factor / now_fac_sum)
 
@@ -215,7 +217,7 @@ class Script(modules.scripts.Script):
         fix_subseed = gr.Checkbox(label='fix_subseed', value=False)
         temporal_superimpose_method = gr.Dropdown(
             label='temporal_superimpose_method',
-            choices=['simple', 'difference mask from reference'],
+            choices=['simple', 'with difference mask from reference'],
             value='simple'
         )
         temporal_superimpose_alpha_list = gr.Textbox(
@@ -582,7 +584,7 @@ class Script(modules.scripts.Script):
                           f"negative prompt: {p.negative_prompt}")
 
                 # make base img for i2i
-                if "difference mask from reference" == temporal_superimpose_method:
+                if "with difference mask from reference" == temporal_superimpose_method:
                     base_img = img_que.blend_temporal_diff(
                         temporal_superimpose_alpha_list,
                         reference_img_list=reference_img_que.window
