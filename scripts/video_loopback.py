@@ -227,8 +227,9 @@ class Script(modules.scripts.Script):
         )
         reference_frames_dir = gr.Textbox(
             label='reference_frames_directory',
-            placeholder='Reference frames for temporal superimpose and controlnet. '
+            placeholder='Reference frames for temporal superimpose and Controlnet. '
                         'Keep this empty to use the input frames as reference. '
+                        'Split you paths with "!!!" if you are using multi-Controlnet. '
         )
         save_every_loop = gr.Checkbox(label='save_every_loop', value=True)
 
@@ -486,18 +487,22 @@ class Script(modules.scripts.Script):
 
         # init references
         if not reference_frames_dir:
-            reference_image_list = image_list
+            reference_image_list = [image_list]
         else:
-            reference_image_list = get_image_paths(reference_frames_dir)
-            reference_image_list = reference_image_list[::extract_nth_frame]
-            reference_image_list = reference_image_list[:max_frames]
-        reference_img_que = TemporalImageBlender(
-            image_path_list=reference_image_list,
-            window_size=len(temporal_superimpose_alpha_list),
-            target_size=(p.width, p.height),
-            use_mask=use_mask, mask_dir=mask_dir,
-            mask_threshold=mask_threshold
-        )
+            reference_image_list = [
+                get_image_paths(Path(p))[::extract_nth_frame][:max_frames]
+                for p in reference_frames_dir.split('!!!') if p
+            ]  # 可能为空
+        reference_img_ques = [
+            TemporalImageBlender(
+                image_path_list=image_list,
+                window_size=len(temporal_superimpose_alpha_list),
+                target_size=(p.width, p.height),
+                use_mask=use_mask, mask_dir=mask_dir,
+                mask_threshold=mask_threshold
+            )
+            for image_list in reference_image_list
+        ]
 
         for loop_i in range(loop_n):
             if shared.state.interrupted:
@@ -520,6 +525,7 @@ class Script(modules.scripts.Script):
                 if shared.state.interrupted:
                     break
 
+                print('='*10)
                 print(f"Loop:{loop_i + 1}/{loop_n},Image:{image_i + 1}/{image_n}")
                 # shared.state.job = f"Loop:{loop_i + 1}/{loop_n},Image:{image_i + 1}/{image_n}"
 
@@ -585,9 +591,11 @@ class Script(modules.scripts.Script):
 
                 # make base img for i2i
                 if "with difference mask from reference" == temporal_superimpose_method:
+                    if len(reference_img_ques) <= 0:
+                        raise ValueError('Current temporal superimpose method need reference')
                     base_img = img_que.blend_temporal_diff(
                         temporal_superimpose_alpha_list,
-                        reference_img_list=reference_img_que.window
+                        reference_img_list=reference_img_ques[0].window
                     )
                 else:
                     base_img = img_que.blend_temporal(temporal_superimpose_alpha_list)
@@ -599,7 +607,10 @@ class Script(modules.scripts.Script):
                 # mask像素为0表示不变
 
                 # 使用 sd-webui-controlnet
-                p.control_net_input_image = reference_img_que.current_image()
+                p.control_net_input_image = [
+                    que.current_image()
+                    for que in reference_img_ques
+                ]
 
                 processed = processing.process_images(p)
 
@@ -620,13 +631,13 @@ class Script(modules.scripts.Script):
                 img_que.save_current_output_image(output_filename, output_img)
 
                 img_que.move_to_next()
-                if reference_img_que is not None:
-                    reference_img_que.move_to_next()
+                for que in reference_img_ques:
+                    que.move_to_next()
 
                 if not fix_seed and not seed_schedule:
-                    p.seed = processed.seed + len(processed.images)
+                    p.seed = processed.seed + p.n_iter * p.batch_size
                 if not fix_subseed and not subseed_schedule:
-                    p.subseed = processed.subseed + len(processed.images)
+                    p.subseed = processed.subseed + p.n_iter * p.batch_size
 
             # post process
             if video_post_processor is not None:
@@ -640,7 +651,8 @@ class Script(modules.scripts.Script):
                     frame_rate=output_frame_rate
                 )
 
-            reference_img_que.reset()
+            for que in reference_img_ques:
+                que.reset()
 
         output_video_name = f'{timestamp}.mp4'
         make_video(
