@@ -11,6 +11,8 @@ The original video is from Live3D (thanks for Live3D's work!!!).
 ## News
 ~~I made some change on the [sd-webui-controlnet](https://github.com/Mikubill/sd-webui-controlnet) by [Mikubill](https://github.com/Mikubill), now ,try install this version https://github.com/fishslot/sd-webui-controlnet~~ they are same now.
 
+This extension is compatible with [sd-webui-controlnet](https://github.com/Mikubill/sd-webui-controlnet).
+
 Make sure `Settings->ControlNet->Allow other script to control this extension` is checked, then they can work toghter.
 
 If you want to use multi-Controlnet, Split your paths in `reference_frames_directory` with `!!!` 
