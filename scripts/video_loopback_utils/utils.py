@@ -4,10 +4,15 @@ from typing import List, Tuple, Iterable
 from PIL import Image
 
 from modules import shared
+from modules import images
+
+resize_mode = 0
 
 
 def resize_img(img, target_size):
-    return img.resize(target_size, Image.ANTIALIAS)
+    width, height = target_size
+    return images.resize_image(resize_mode, img, width, height)
+    # return img.resize(target_size, Image.ANTIALIAS)
 
 
 def make_video(

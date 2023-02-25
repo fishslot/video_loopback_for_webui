@@ -9,7 +9,8 @@ from collections import deque
 from pathlib import Path
 from typing import List, Tuple, Iterable
 
-from scripts.video_loopback_utils.utils import \
+from scripts.video_loopback_utils import utils
+from utils import \
     resize_img, make_video, get_image_paths, \
     get_prompt_for_images, blend_average, get_now_time
 from scripts.video_loopback_utils.fastdvdnet_processor import FastDVDNet
@@ -387,6 +388,8 @@ class Script(modules.scripts.Script):
         if not output_dir:
             raise ValueError('output_dir is empty')
 
+        utils.resize_mode = p.resize_mode
+
         # save settings
         args_dict = {
             "timestamp": timestamp,
@@ -436,6 +439,7 @@ class Script(modules.scripts.Script):
             "batch_size": p.batch_size,
             "n_iter": p.n_iter,
             "steps": p.steps,
+            "resize_mode": p.resize_mode,
             "clip_skip": shared.opts.CLIP_stop_at_last_layers,
             "model_name": shared.sd_model.sd_checkpoint_info.model_name,
             "model_hash": shared.sd_model.sd_model_hash
