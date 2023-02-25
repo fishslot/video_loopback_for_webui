@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import List, Tuple, Iterable
 
 from scripts.video_loopback_utils import utils
-from utils import \
+from scripts.video_loopback_utils.utils import \
     resize_img, make_video, get_image_paths, \
     get_prompt_for_images, blend_average, get_now_time
 from scripts.video_loopback_utils.fastdvdnet_processor import FastDVDNet
