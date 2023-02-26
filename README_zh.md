@@ -31,6 +31,17 @@ https://user-images.githubusercontent.com/122792358/218375476-a4116c74-5a9a-41e2
 
 还有一点就是，需要提前安装 ffmpeg 。
 
+## 对 Controlnet 的支持
+
+本脚本支持和 [sd-webui-controlnet](https://github.com/Mikubill/sd-webui-controlnet) 同时工作，可以更精细地控制生成的视频。
+
+要先进入设置 `Settings->ControlNet->Allow other script to control this extension` ，勾选这个选项，并且应用设置，就可以让 Video Loopback 调用 Controlnet 了。
+
+如果要同时使用多个Controlnet，在填写 `reference_frames_directory` 的时候，可以填多个路径，每个路径之间用 `!!!` 隔开。
+
+比如： `/dir/path1 !!! /dir/path2  !!! /dir/path3`
+
+
 ## 功能
 
 # loopback & superimpose for video
