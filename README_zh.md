@@ -27,7 +27,7 @@ https://user-images.githubusercontent.com/122792358/218375476-a4116c74-5a9a-41e2
 
 ## 安装方法
 
-按照正常的安装 WebUI extention 的流程安装即可。
+按照正常的安装 WebUI extension 的流程安装即可。
 
 还有一点就是，需要提前安装 ffmpeg 。
 
