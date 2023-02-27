@@ -31,6 +31,11 @@ https://user-images.githubusercontent.com/122792358/218375476-a4116c74-5a9a-41e2
 
 还有一点就是，需要提前安装 ffmpeg 。
 
+## 使用方法
+
+到img2img界面或者inpainting界面，在脚本的下拉菜单里面找 `Video Loopback`。  
+需要先保证webui界面里有一张图片，才能开始处理（随便拖一张图片上去就行了）。
+
 ## 对 Controlnet 的支持
 
 本脚本支持和 [sd-webui-controlnet](https://github.com/Mikubill/sd-webui-controlnet) 同时工作，可以更精细地控制生成的视频。
