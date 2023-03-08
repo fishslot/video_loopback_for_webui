@@ -458,7 +458,7 @@ class Script(modules.scripts.Script):
         if input_dir.is_file():
             extract_dir = output_dir / 'input_frames'
             extract_dir.mkdir()
-            os.system(f"ffmpeg -i {input_dir} {extract_dir / '%07d.png'}")
+            os.system(f'ffmpeg -i "{input_dir}" "{extract_dir / "%07d.png"}" ')
             input_dir = extract_dir
         image_list = get_image_paths(input_dir)
         image_list = image_list[::extract_nth_frame]

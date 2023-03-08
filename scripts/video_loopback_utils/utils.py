@@ -20,12 +20,12 @@ def make_video(
         frame_rate=12, input_format='%07d.png'):
     os.system(
         f"ffmpeg -r {frame_rate} "
-        f" -i {Path(input_dir) / input_format} "
+        f' -i "{Path(input_dir) / input_format}" '
         f" -c:v libx264 "
         # f" -c:v mpeg4 "
         f" -qp 0 "
         # f" -preset ultrafast "
-        f" {output_filename} "
+        f' "{output_filename}" '
     )
 
 
