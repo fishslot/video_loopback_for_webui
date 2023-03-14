@@ -10,7 +10,7 @@ https://user-images.githubusercontent.com/122792358/218375476-a4116c74-5a9a-41e2
 
 The original video is from Live3D (thanks for Live3D's work!!!).
 ## News
-23/2/25 Compatible with multi-Contorlnet  
+23/2/25 Compatible with multi-Controlnet  
 &ensp;&ensp; If you want to use multi-Controlnet, Split your paths in `reference_frames_directory` with `!!!`   
 &ensp;&ensp; For example: `/dir/path1/!!!/dir/path2/!!!/dir/path3/`
 
