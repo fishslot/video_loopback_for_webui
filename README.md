@@ -12,7 +12,7 @@ The original video is from Live3D (thanks for Live3D's work!!!).
 ## News
 23/2/25 Compatible with multi-Contorlnet  
 &ensp;&ensp; If you want to use multi-Controlnet, Split your paths in `reference_frames_directory` with `!!!`   
-&ensp;&ensp; For example: `/dir/path1 !!! /dir/path2  !!! /dir/path3`
+&ensp;&ensp; For example: `/dir/path1/!!!/dir/path2/!!!/dir/path3/`
 
 23/2/14 This extension is compatible with [sd-webui-controlnet](https://github.com/Mikubill/sd-webui-controlnet).  
 &ensp;&ensp; Make sure `Settings->ControlNet->Allow other script to control this extension` is checked, then they can work toghter.
