@@ -111,7 +111,7 @@ class TemporalImageBlender:
 
         new_img: Image.Image = blend_average(new_imgs)
         base_img = self.current_image().convert(new_img.mode)
-        base_img = resize_img(base_img, new_img.size)  # SD输出尺寸可能与用户指定尺寸不同
+        new_img = resize_img(new_img, base_img.size)  # SD输出尺寸可能与用户指定尺寸不同
         output_img = Image.blend(base_img, new_img, superimpose_alpha)
 
         if mask is None:
@@ -212,6 +212,9 @@ class Script(modules.scripts.Script):
         output_frame_rate = gr.Number(label='output_frame_rate', precision=0, value=30)
         max_frames = gr.Number(label='max_frames', precision=0, value=9999)
         extract_nth_frame = gr.Number(label='extract_nth_frame', precision=0, value=1)
+        is_continue = gr.Checkbox(
+            label='is_continue (ignore the "extract_nth_frame" for input frames only)', value=False
+        )
         loop_n = gr.Number(label='loop_n', precision=0, value=10)
         superimpose_alpha = gr.Slider(label='superimpose_alpha', minimum=0, maximum=1, step=0.01, value=0.25)
         fix_seed = gr.Checkbox(label='fix_seed', value=True)
@@ -249,6 +252,10 @@ class Script(modules.scripts.Script):
             denoising_schedule = gr.Textbox(
                 label='denoising_schedule',
                 placeholder='Example: 0.4 if loop_i<3 else 0.3'
+            )
+            step_schedule = gr.Textbox(
+                label='step_schedule',
+                placeholder='Example: 10 if loop_i<3 else 20'
             )
             seed_schedule = gr.Textbox(
                 label='seed_schedule',
@@ -319,6 +326,7 @@ class Script(modules.scripts.Script):
             output_frame_rate,
             max_frames,
             extract_nth_frame,
+            is_continue,
             loop_n,
             superimpose_alpha,
             fix_seed,
@@ -329,6 +337,7 @@ class Script(modules.scripts.Script):
             save_every_loop,
             subseed_strength_schedule,
             denoising_schedule,
+            step_schedule,
             seed_schedule,
             subseed_schedule,
             cfg_schedule,
@@ -353,6 +362,7 @@ class Script(modules.scripts.Script):
             output_frame_rate,
             max_frames,
             extract_nth_frame,
+            is_continue,
             loop_n,
             superimpose_alpha,
             fix_seed,
@@ -363,6 +373,7 @@ class Script(modules.scripts.Script):
             save_every_loop,
             subseed_strength_schedule,
             denoising_schedule,
+            step_schedule,
             seed_schedule,
             subseed_schedule,
             cfg_schedule,
@@ -402,6 +413,7 @@ class Script(modules.scripts.Script):
             "output_frame_rate": output_frame_rate,
             "max_frames": max_frames,
             "extract_nth_frame": extract_nth_frame,
+            "is_continue": is_continue,
             "loop_n": loop_n,
             "superimpose_alpha": superimpose_alpha,
             "fix_seed": fix_seed,
@@ -412,6 +424,7 @@ class Script(modules.scripts.Script):
             "save_every_loop": save_every_loop,
             "subseed_strength_schedule": subseed_strength_schedule,
             "denoising_schedule": denoising_schedule,
+            "step_schedule": step_schedule,
             "seed_schedule": seed_schedule,
             "subseed_schedule": subseed_schedule,
             "cfg_schedule": cfg_schedule,
@@ -461,8 +474,8 @@ class Script(modules.scripts.Script):
             os.system(f'ffmpeg -i "{input_dir}" "{extract_dir / "%07d.png"}" ')
             input_dir = extract_dir
         image_list = get_image_paths(input_dir)
-        image_list = image_list[::extract_nth_frame]
-        image_list = image_list[:max_frames]
+        if not is_continue:
+            image_list = image_list[::extract_nth_frame][:max_frames]
         image_n = len(image_list)
 
         temporal_superimpose_alpha_list = \
@@ -543,6 +556,9 @@ class Script(modules.scripts.Script):
                 if denoising_schedule:
                     p.denoising_strength = eval(denoising_schedule, schedule_args)
                     print(f"denoising_schedule:{p.denoising_strength}")
+                if step_schedule:
+                    p.steps = eval(step_schedule, schedule_args)
+                    print(f"step_schedule:{p.steps}")
                 if seed_schedule:
                     p.seed = eval(seed_schedule, schedule_args)
                     print(f"seed_schedule:{p.seed}")
