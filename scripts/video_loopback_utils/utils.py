@@ -6,7 +6,7 @@ from PIL import Image
 from modules import shared
 from modules import images
 
-resize_mode = 0
+resize_mode = 0  # utils.resize_mode = p.resize_mode
 
 
 def resize_img(img, target_size):

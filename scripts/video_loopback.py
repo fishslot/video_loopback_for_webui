@@ -11,7 +11,7 @@ from typing import List, Tuple, Iterable
 
 from scripts.video_loopback_utils import utils
 from scripts.video_loopback_utils.utils import \
-    resize_img, make_video, get_image_paths, \
+    resize_img, make_video, is_image, get_image_paths, \
     get_prompt_for_images, blend_average, get_now_time
 from scripts.video_loopback_utils.fastdvdnet_processor import FastDVDNet
 
@@ -468,14 +468,19 @@ class Script(modules.scripts.Script):
 
         input_dir = Path(input_dir)
         assert input_dir.exists()
-        if input_dir.is_file():
+        if input_dir.is_file() and not is_image(input_dir):  # 输入为视频文件
             extract_dir = output_dir / 'input_frames'
             extract_dir.mkdir()
             os.system(f'ffmpeg -i "{input_dir}" "{extract_dir / "%07d.png"}" ')
             input_dir = extract_dir
-        image_list = get_image_paths(input_dir)
-        if not is_continue:
-            image_list = image_list[::extract_nth_frame][:max_frames]
+
+        if is_image(input_dir):  # 输入为单张图片
+            image_list = [input_dir] * max_frames
+        else:
+            image_list = get_image_paths(input_dir)
+            if not is_continue:
+                image_list = image_list[::extract_nth_frame]
+            image_list = image_list[:max_frames]
         image_n = len(image_list)
 
         temporal_superimpose_alpha_list = \
