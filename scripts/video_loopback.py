@@ -1,5 +1,6 @@
 import gradio as gr
 import modules
+import time
 from modules import processing, shared
 from modules.processing import Processed
 
@@ -174,10 +175,19 @@ class TemporalImageBlender:
         return output_img
 
     def save_current_output_image(self, path, img: Image.Image):
-        if self.use_mask and not self.mask_dir:
-            img.putalpha(self.current_mask())
-        img.save(path)
-
+        max_retries = 3
+        retry_interval = 5  # seconds
+        for i in range(max_retries):
+            try:
+                if self.use_mask and not self.mask_dir:
+                    img.putalpha(self.current_mask())
+                img.save(path)
+                break 
+            except FileNotFoundError:
+                if i < max_retries - 1:  # wait for a while unless this is the last try
+                    time.sleep(retry_interval)
+                else:
+                    raise 
 
 class Script(modules.scripts.Script):
     def title(self):
