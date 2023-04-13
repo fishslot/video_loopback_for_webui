@@ -185,6 +185,7 @@ class TemporalImageBlender:
                 break 
             except (OSError, FileNotFoundError) as e:
                 # Transport endpoint is not connected or FileNotFoundError
+                print(f"Exception occurred: {type(e).__name__} - {str(e)}")
                 if i < max_retries - 1:  # wait for a while unless this is the last try
                     time.sleep(retry_interval)
                 else:
