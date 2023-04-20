@@ -21,10 +21,11 @@ def make_video(
     os.system(
         f"ffmpeg -r {frame_rate} "
         f' -i "{Path(input_dir) / input_format}" '
-        f" -c:v libx264 "
-        # f" -c:v mpeg4 "
-        f" -qp 0 "
-        # f" -preset ultrafast "
+        # " -c:v libx264 "
+        " -c:v mpeg4 "
+        " -qp 0 "
+        # " -preset ultrafast "
+        " -pix_fmt yuv420p "
         f' "{output_filename}" '
     )
 
